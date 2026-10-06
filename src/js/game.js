@@ -226,13 +226,33 @@ function moveGhostOut( g ) {
   }
 }
 
+function moveGhostIntoPen( g ) {
+  if ( !aligned( g.x ) || Math.round( g.x ) !== 13 ) {
+    g.x += ( g.x < 13 ? 1 : -1 ) * g.speed;
+    if ( aligned( g.x ) && Math.round( g.x ) === 13 ) g.x = 13;
+    return;
+  }
+
+  g.y += g.speed;
+  if ( aligned( g.y ) && Math.round( g.y ) >= 14 ) {
+    g.y = 14;
+    g.dir = 'up';
+    g.frightened = false;
+    g.reversePending = false;
+    g.state = 'exiting';
+  }
+}
+
 function moveGhost( game, g ) {
   if ( g.state === 'waiting' ) return;
   if ( g.state === 'exiting' ) {
     moveGhostOut( g );
     return;
   }
-  if ( g.state === 'entering' ) return;
+  if ( g.state === 'entering' ) {
+    moveGhostIntoPen( g );
+    return;
+  }
 
   const grid = game.grid;
   const width = grid[ 0 ].length;
@@ -266,10 +286,14 @@ function resetPositions( game ) {
     g.y = GHOST_STARTS[ i ].y;
     g.dir = 'up';
     g.state = g.kind === 'blinky' ? 'active' : 'waiting';
+    g.frightened = false;
+    g.reversePending = false;
   } );
   game.releaseTimer = 0;
   game.ghostMode = 'scatter';
   game.modeTimer = 0;
+  game.frightenedTimer = 0;
+  game.frightenedChain = 0;
 }
 
 function collides( a, b ) {

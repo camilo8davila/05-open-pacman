@@ -1,6 +1,6 @@
 # SPEC 02 — Power pellets y modo frightened
 
-> **Estado:** Approved
+> **Estado:** Done
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-10-06
 > **Objetivo:** Las 4 power pellets clásicas de las esquinas (celda 4) hacen a los fantasmas azules, erráticos y comestibles (200/400/800/1600), y el comido vuelve como ojos a la jaula para revivir.
