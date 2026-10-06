@@ -13,6 +13,13 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
+const GHOST_PERSONALITIES = {
+  blinky: { scatter: { x: 26, y: 1 }, releaseFrame: 0 },
+  pinky: { scatter: { x: 1, y: 1 }, releaseFrame: 120 },
+  inky: { scatter: { x: 26, y: 29 }, releaseFrame: 240 },
+  clyde: { scatter: { x: 1, y: 29 }, releaseFrame: 360 },
+};
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -42,6 +49,7 @@ function createGame() {
       dir: 'up',
       speed: GHOST_SPEED,
       kind: g.kind,
+      state: g.kind === 'blinky' ? 'active' : 'waiting',
     } ) ),
   };
 }
@@ -120,7 +128,7 @@ function decideGhost( game, g ) {
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
-  if ( g.kind === 'hunter' ) {
+  if ( g.kind === 'blinky' ) {
     const px = Math.round( p.x );
     const py = Math.round( p.y );
     let best = choices[ 0 ];
@@ -142,6 +150,8 @@ function decideGhost( game, g ) {
 }
 
 function moveGhost( game, g ) {
+  if ( g.state === 'waiting' ) return;
+
   const grid = game.grid;
   const width = grid[ 0 ].length;
 
