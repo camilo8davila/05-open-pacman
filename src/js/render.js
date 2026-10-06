@@ -99,7 +99,7 @@ function drawPacman( ctx, p, frame ) {
   ctx.fill();
 }
 
-function drawGhost( ctx, g, color ) {
+function drawGhost( ctx, g, color, game ) {
   const { cx, cy } = cellCenter( g.x, g.y );
   const r = TILE / 2 - 1;
   const top = cy - r;
@@ -107,7 +107,13 @@ function drawGhost( ctx, g, color ) {
   const left = cx - r;
   const right = cx + r;
 
-  ctx.fillStyle = color;
+  const flashing = game.frightenedTimer <= FRIGHTENED_FLASH &&
+    Math.floor( game.frightenedTimer / 8 ) % 2 === 0;
+  const bodyColor = g.frightened
+    ? ( flashing ? '#fff' : '#2121de' )
+    : color;
+
+  ctx.fillStyle = bodyColor;
   ctx.beginPath();
   ctx.arc( cx, cy - 1, r, Math.PI, 0, false ); // cabeza
   ctx.lineTo( right, bottom );
@@ -159,7 +165,9 @@ function draw( ctx, game, frame ) {
   drawDoor( ctx, grid );
   drawDots( ctx, grid );
   drawPacman( ctx, game.pacman, frame );
-  game.ghosts.forEach( ( g, i ) => drawGhost( ctx, g, GHOST_COLORS[ i ] || '#ff0000' ) );
+  game.ghosts.forEach(
+    ( g, i ) => drawGhost( ctx, g, GHOST_COLORS[ i ] || '#ff0000', game )
+  );
   drawHUD( ctx, game, W );
 }
 

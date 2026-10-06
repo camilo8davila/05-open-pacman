@@ -13,6 +13,8 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
 const PACMAN_SPEED = 1 / 12;
 const GHOST_SPEED = 1 / 16;
+const FRIGHTENED_FRAMES = 360;
+const FRIGHTENED_FLASH = 120;
 
 const GHOST_PERSONALITIES = {
   blinky: { scatter: { x: 26, y: 1 }, releaseFrame: 0 },
@@ -46,6 +48,8 @@ function createGame() {
     ghostMode: 'scatter',
     modeTimer: 0,
     releaseTimer: 0,
+    frightenedTimer: 0,
+    frightenedChain: 0,
     grid,
     pacman: {
       x: PACMAN_START.x,
@@ -61,6 +65,8 @@ function createGame() {
       speed: GHOST_SPEED,
       kind: g.kind,
       state: g.kind === 'blinky' ? 'active' : 'waiting',
+      frightened: false,
+      reversePending: false,
     } ) ),
   };
 }
@@ -95,6 +101,17 @@ function wrapTunnel( a, width ) {
   }
 }
 
+function startFrightened( game ) {
+  game.frightenedTimer = FRIGHTENED_FRAMES;
+  game.frightenedChain = 0;
+  game.ghosts.forEach( ( g ) => {
+    if ( g.state !== 'waiting' && g.state !== 'exiting' && g.state !== 'active' ) return;
+    g.frightened = true;
+    g.reversePending = g.state === 'active';
+    if ( g.reversePending ) g.dir = OPPOSITE[ g.dir ];
+  } );
+}
+
 function movePacman( game ) {
   const p = game.pacman;
   const grid = game.grid;
@@ -115,6 +132,7 @@ function movePacman( game ) {
       grid[ p.y ][ p.x ] = 0;
       game.score += tile === 4 ? 50 : 10;
       game.dotsRemaining--;
+      if ( tile === 4 ) startFrightened( game );
     }
     // Si no puede seguir, se detiene en la celda.
     if ( !canMove( grid, p.x, p.y, p.dir ) ) return;
@@ -166,6 +184,10 @@ function decideGhost( game, g ) {
   );
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
+  if ( g.frightened ) {
+    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+    return;
+  }
 
   const target = game.ghostMode === 'scatter'
     ? GHOST_PERSONALITIES[ g.kind ].scatter
@@ -213,7 +235,8 @@ function moveGhost( game, g ) {
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
     g.y = Math.round( g.y );
-    decideGhost( game, g );
+    if ( g.reversePending ) g.reversePending = false;
+    else decideGhost( game, g );
     if ( !canMove( grid, g.x, g.y, g.dir ) ) return;
   }
 
@@ -245,6 +268,8 @@ function collides( a, b ) {
 }
 
 function updateGhostMode( game ) {
+  if ( game.frightenedTimer > 0 ) return;
+
   game.modeTimer++;
   const phase = MODE_PHASES.find( ( item ) => item.mode === game.ghostMode );
   if ( game.modeTimer < phase.frames ) return;
@@ -256,7 +281,20 @@ function updateGhostMode( game ) {
   } );
 }
 
+function updateFrightened( game ) {
+  if ( game.frightenedTimer <= 0 ) return;
+
+  game.frightenedTimer--;
+  if ( game.frightenedTimer > 0 ) return;
+
+  game.ghosts.forEach( ( g ) => {
+    g.frightened = false;
+    g.reversePending = false;
+  } );
+}
+
 function update( game ) {
+  updateFrightened( game );
   game.releaseTimer++;
   game.ghosts.forEach( ( g ) => {
     if ( g.state === 'waiting' && game.releaseTimer >= GHOST_PERSONALITIES[ g.kind ].releaseFrame ) {
