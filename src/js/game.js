@@ -15,6 +15,8 @@ const PACMAN_SPEED = 1 / 12;
 const GHOST_SPEED = 1 / 16;
 const FRIGHTENED_FRAMES = 360;
 const FRIGHTENED_FLASH = 120;
+const DOOR_OUTSIDE = { x: 13, y: 11 };
+const EATEN_SCORES = [ 200, 400, 800, 1600 ];
 
 const GHOST_PERSONALITIES = {
   blinky: { scatter: { x: 26, y: 1 }, releaseFrame: 0 },
@@ -189,9 +191,11 @@ function decideGhost( game, g ) {
     return;
   }
 
-  const target = game.ghostMode === 'scatter'
-    ? GHOST_PERSONALITIES[ g.kind ].scatter
-    : getChaseTarget( game, g );
+  const target = g.state === 'returning'
+    ? DOOR_OUTSIDE
+    : game.ghostMode === 'scatter'
+      ? GHOST_PERSONALITIES[ g.kind ].scatter
+      : getChaseTarget( game, g );
   let best = choices[ 0 ];
   let bestDist = Infinity;
   for ( const dir of choices ) {
@@ -228,6 +232,7 @@ function moveGhost( game, g ) {
     moveGhostOut( g );
     return;
   }
+  if ( g.state === 'entering' ) return;
 
   const grid = game.grid;
   const width = grid[ 0 ].length;
@@ -235,6 +240,10 @@ function moveGhost( game, g ) {
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
     g.y = Math.round( g.y );
+    if ( g.state === 'returning' && g.x === DOOR_OUTSIDE.x && g.y === DOOR_OUTSIDE.y ) {
+      g.state = 'entering';
+      return;
+    }
     if ( g.reversePending ) g.reversePending = false;
     else decideGhost( game, g );
     if ( !canMove( grid, g.x, g.y, g.dir ) ) return;
@@ -307,7 +316,18 @@ function update( game ) {
   updateGhostMode( game );
 
   for ( const g of game.ghosts ) {
+    if ( g.state !== 'active' ) continue;
     if ( collides( game.pacman, g ) ) {
+      if ( g.frightened ) {
+        const scoreIndex = Math.min( game.frightenedChain, EATEN_SCORES.length - 1 );
+        game.score += EATEN_SCORES[ scoreIndex ];
+        game.frightenedChain++;
+        g.state = 'returning';
+        g.frightened = false;
+        g.reversePending = false;
+        continue;
+      }
+
       game.lives--;
       if ( game.lives <= 0 ) {
         game.state = 'lost';
