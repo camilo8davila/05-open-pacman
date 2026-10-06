@@ -70,10 +70,11 @@ function drawDots( ctx, grid ) {
   ctx.fillStyle = DOT_COLOR;
   for ( let y = 0; y < grid.length; y++ ) {
     for ( let x = 0; x < grid[ 0 ].length; x++ ) {
-      if ( grid[ y ][ x ] !== 2 ) continue;
+      const tile = grid[ y ][ x ];
+      if ( tile !== 2 && tile !== 4 ) continue;
       const { cx, cy } = cellCenter( x, y );
       ctx.beginPath();
-      ctx.arc( cx, cy, 2.5, 0, Math.PI * 2 );
+      ctx.arc( cx, cy, tile === 4 ? 7 : 2.5, 0, Math.PI * 2 );
       ctx.fill();
     }
   }
@@ -98,27 +99,7 @@ function drawPacman( ctx, p, frame ) {
   ctx.fill();
 }
 
-function drawGhost( ctx, g, color ) {
-  const { cx, cy } = cellCenter( g.x, g.y );
-  const r = TILE / 2 - 1;
-  const top = cy - r;
-  const bottom = cy + r;
-  const left = cx - r;
-  const right = cx + r;
-
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc( cx, cy - 1, r, Math.PI, 0, false ); // cabeza
-  ctx.lineTo( right, bottom );
-  // falda ondulada (3 picos)
-  ctx.lineTo( right - r * 0.66, bottom - 4 );
-  ctx.lineTo( cx, bottom );
-  ctx.lineTo( left + r * 0.66, bottom - 4 );
-  ctx.lineTo( left, bottom );
-  ctx.closePath();
-  ctx.fill();
-
-  // ojos mirando segun direccion
+function drawGhostEyes( ctx, g, cx, cy ) {
   const dir = DIRS[ g.dir ] || { x: 0, y: 0 };
   const ex = dir.x * 1.6;
   const ey = dir.y * 1.6;
@@ -132,6 +113,39 @@ function drawGhost( ctx, g, color ) {
     ctx.arc( cx + off + ex, cy - 1 + ey, 1.5, 0, Math.PI * 2 );
     ctx.fill();
   }
+}
+
+function drawGhost( ctx, g, color, game ) {
+  const { cx, cy } = cellCenter( g.x, g.y );
+  if ( g.state === 'returning' || g.state === 'entering' ) {
+    drawGhostEyes( ctx, g, cx, cy );
+    return;
+  }
+
+  const r = TILE / 2 - 1;
+  const bottom = cy + r;
+  const left = cx - r;
+  const right = cx + r;
+
+  const flashing = game.frightenedTimer <= FRIGHTENED_FLASH &&
+    Math.floor( game.frightenedTimer / 8 ) % 2 === 0;
+  const bodyColor = g.frightened
+    ? ( flashing ? '#fff' : '#2121de' )
+    : color;
+
+  ctx.fillStyle = bodyColor;
+  ctx.beginPath();
+  ctx.arc( cx, cy - 1, r, Math.PI, 0, false ); // cabeza
+  ctx.lineTo( right, bottom );
+  // falda ondulada (3 picos)
+  ctx.lineTo( right - r * 0.66, bottom - 4 );
+  ctx.lineTo( cx, bottom );
+  ctx.lineTo( left + r * 0.66, bottom - 4 );
+  ctx.lineTo( left, bottom );
+  ctx.closePath();
+  ctx.fill();
+
+  drawGhostEyes( ctx, g, cx, cy );
 }
 
 function drawHUD( ctx, game, W ) {
@@ -158,7 +172,9 @@ function draw( ctx, game, frame ) {
   drawDoor( ctx, grid );
   drawDots( ctx, grid );
   drawPacman( ctx, game.pacman, frame );
-  game.ghosts.forEach( ( g, i ) => drawGhost( ctx, g, GHOST_COLORS[ i ] || '#ff0000' ) );
+  game.ghosts.forEach(
+    ( g, i ) => drawGhost( ctx, g, GHOST_COLORS[ i ] || '#ff0000', game )
+  );
   drawHUD( ctx, game, W );
 }
 

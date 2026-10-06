@@ -1,6 +1,6 @@
 # SPEC 01 — Cuatro fantasmas con IA clásica del arcade
 
-> **Estado:** Approved
+> **Estado:** Done
 > **Depende de:** ninguna
 > **Fecha:** 2026-10-06
 > **Objetivo:** Los 4 fantasmas (Blinky, Pinky, Inky y Clyde) salen escalonados de la jaula y persiguen a Pac-Man cada uno con su targeting clásico del arcade, alternando fases globales scatter/chase.
