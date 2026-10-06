@@ -20,6 +20,11 @@ const GHOST_PERSONALITIES = {
   clyde: { scatter: { x: 1, y: 29 }, releaseFrame: 360 },
 };
 
+const MODE_PHASES = [
+  { mode: 'scatter', frames: 420 },
+  { mode: 'chase', frames: 1200 },
+];
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -35,6 +40,8 @@ function createGame() {
     score: 0,
     lives: 3,
     dotsRemaining: dots,
+    ghostMode: 'scatter',
+    modeTimer: 0,
     releaseTimer: 0,
     grid,
     pacman: {
@@ -125,25 +132,22 @@ function decideGhost( game, g ) {
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
-  if ( g.kind === 'blinky' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
-    let best = choices[ 0 ];
-    let bestDist = Infinity;
-    for ( const dir of choices ) {
-      const d = DIRS[ dir ];
-      const nx = g.x + d.x;
-      const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
-      if ( dist < bestDist ) {
-        bestDist = dist;
-        best = dir;
-      }
+  const target = game.ghostMode === 'scatter'
+    ? GHOST_PERSONALITIES[ g.kind ].scatter
+    : { x: Math.round( p.x ), y: Math.round( p.y ) };
+  let best = choices[ 0 ];
+  let bestDist = Infinity;
+  for ( const dir of choices ) {
+    const d = DIRS[ dir ];
+    const nx = g.x + d.x;
+    const ny = g.y + d.y;
+    const dist = Math.abs( nx - target.x ) + Math.abs( ny - target.y );
+    if ( dist < bestDist ) {
+      bestDist = dist;
+      best = dir;
     }
-    g.dir = best;
-  } else {
-    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
+  g.dir = best;
 }
 
 function moveGhostOut( g ) {
@@ -201,6 +205,18 @@ function collides( a, b ) {
   return Math.abs( a.x - b.x ) < 0.5 && Math.abs( a.y - b.y ) < 0.5;
 }
 
+function updateGhostMode( game ) {
+  game.modeTimer++;
+  const phase = MODE_PHASES.find( ( item ) => item.mode === game.ghostMode );
+  if ( game.modeTimer < phase.frames ) return;
+
+  game.modeTimer = 0;
+  game.ghostMode = game.ghostMode === 'scatter' ? 'chase' : 'scatter';
+  game.ghosts.forEach( ( g ) => {
+    if ( g.state === 'active' ) g.dir = OPPOSITE[ g.dir ];
+  } );
+}
+
 function update( game ) {
   game.releaseTimer++;
   game.ghosts.forEach( ( g ) => {
@@ -211,6 +227,7 @@ function update( game ) {
 
   movePacman( game );
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
+  updateGhostMode( game );
 
   for ( const g of game.ghosts ) {
     if ( collides( game.pacman, g ) ) {
