@@ -1,4 +1,4 @@
-# AGENTS.md
+git push -u origin main# AGENTS.md
 
 Juego tipo Pac-Man en JS vanilla sobre canvas. Sin build, sin bundler, sin npm, sin tests.
 
