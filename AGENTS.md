@@ -19,7 +19,7 @@ No hay suite de tests, lint ni typecheck. La verificación es manual en el naveg
 
 ## Gotchas
 
-- Celdas del grid: `0` vacío · `1` pared · `2` dot · `3` puerta-pen. La puerta (`3`) bloquea a pacman pero NO a los fantasmas (`isWall` en `game.js`).
+- Celdas del grid: `0` vacío · `1` pared · `2` dot · `3` puerta-pen. La puerta (`3`) bloquea el movimiento normal de Pac-Man y los fantasmas; la salida inicial de la jaula de los fantasmas es scripteada (`game.js`).
 - `MAZE` es la matriz prístina: nunca mutarla. Cada partida la copia a `game.grid` (`createGame`) y los dots se comen ahí. El render dibuja `game.grid`, no `MAZE`.
 - Laberinto 28x31, simétrico respecto al eje entre columnas 13-14. Al editar `MAZE_STR`: cada fila debe tener exactamente 28 chars; la fila 14 es el túnel (extremos abiertos).
 - El canvas en `index.html` (560x620) es `(28, 31) * TILE` (`TILE = 20` en `render.js`). Si cambias dimensiones del maze o `TILE`, actualiza el canvas.
