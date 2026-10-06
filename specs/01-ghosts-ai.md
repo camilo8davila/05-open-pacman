@@ -86,15 +86,15 @@ Reglas de targeting (posiciones redondeadas a celda, como el código actual):
 
 ## Criterios de aceptación
 
-- [ ] Al iniciar, Blinky (rojo) sale de (13,11) y persigue directamente la celda de Pac-Man.
-- [ ] Pinky (rosa) sale de la jaula ~2s después, Inky (cian) ~4s y Clyde (naranja) ~6s.
-- [ ] Pinky apunta 4 celdas adelante de la dirección de Pac-Man (le corta el paso).
-- [ ] Inky flanquea: su objetivo se aleja de Blinky por el lado opuesto (visible con Blinky cerca de Pac-Man).
-- [ ] Clyde persigue a más de 8 celdas de distancia y se retira a su esquina (1,29) al quedar a ≤8.
-- [ ] Los 4 se retiran a sus esquinas ~7s (scatter) y persiguen ~20s (chase), invirtiendo dirección en cada cambio.
-- [ ] Ningún fantasma reentra a la jaula por la puerta.
-- [ ] Al perder una vida, los fantasmas vuelven a sus starts y re-ejecutan la salida escalonada con el modo scatter reiniciado.
-- [ ] No hay errores en la consola y la partida se gana al comer todos los dots.
+- [x] Al iniciar, Blinky (rojo) sale de (13,11) y persigue directamente la celda de Pac-Man.
+- [x] Pinky (rosa) sale de la jaula ~2s después, Inky (cian) ~4s y Clyde (naranja) ~6s.
+- [x] Pinky apunta 4 celdas adelante de la dirección de Pac-Man (le corta el paso).
+- [x] Inky flanquea: su objetivo se aleja de Blinky por el lado opuesto (visible con Blinky cerca de Pac-Man).
+- [x] Clyde persigue a más de 8 celdas de distancia y se retira a su esquina (1,29) al quedar a ≤8.
+- [x] Los 4 se retiran a sus esquinas ~7s (scatter) y persiguen ~20s (chase), invirtiendo dirección en cada cambio.
+- [x] Ningún fantasma reentra a la jaula por la puerta.
+- [x] Al perder una vida, los fantasmas vuelven a sus starts y re-ejecutan la salida escalonada con el modo scatter reiniciado.
+- [x] No hay errores en la consola y la partida se gana al comer todos los dots.
 
 ## Decisiones
 
