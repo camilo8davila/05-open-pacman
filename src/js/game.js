@@ -230,7 +230,11 @@ function resetPositions( game ) {
     g.x = GHOST_STARTS[ i ].x;
     g.y = GHOST_STARTS[ i ].y;
     g.dir = 'up';
+    g.state = g.kind === 'blinky' ? 'active' : 'waiting';
   } );
+  game.releaseTimer = 0;
+  game.ghostMode = 'scatter';
+  game.modeTimer = 0;
 }
 
 function collides( a, b ) {
