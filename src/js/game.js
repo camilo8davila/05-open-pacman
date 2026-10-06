@@ -11,8 +11,8 @@ const DIRS = {
 const GHOST_DIR_ORDER = [ 'up', 'left', 'down', 'right' ];
 const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
-const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
-const GHOST_SPEED = 0.1;    // 1/10 celda/frame
+const PACMAN_SPEED = 1 / 12;
+const GHOST_SPEED = 1 / 16;
 
 const GHOST_PERSONALITIES = {
   blinky: { scatter: { x: 26, y: 1 }, releaseFrame: 0 },
@@ -22,8 +22,8 @@ const GHOST_PERSONALITIES = {
 };
 
 const MODE_PHASES = [
-  { mode: 'scatter', frames: 420 },
-  { mode: 'chase', frames: 1200 },
+  { mode: 'scatter', frames: 600 },
+  { mode: 'chase', frames: 900 },
 ];
 
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
@@ -34,7 +34,9 @@ function createGame() {
   grid[ PACMAN_START.y ][ PACMAN_START.x ] = 0;
 
   let dots = 0;
-  for ( const row of grid ) for ( const v of row ) if ( v === 2 ) dots++;
+  for ( const row of grid ) {
+    for ( const v of row ) if ( v === 2 || v === 4 ) dots++;
+  }
 
   return {
     state: 'start',
@@ -107,10 +109,11 @@ function movePacman( game ) {
       p.dir = p.nextDir;
       p.nextDir = null;
     }
-    // Comer dot.
-    if ( grid[ p.y ][ p.x ] === 2 ) {
+    // Comer dot o power pellet.
+    if ( grid[ p.y ][ p.x ] === 2 || grid[ p.y ][ p.x ] === 4 ) {
+      const tile = grid[ p.y ][ p.x ];
       grid[ p.y ][ p.x ] = 0;
-      game.score += 10;
+      game.score += tile === 4 ? 50 : 10;
       game.dotsRemaining--;
     }
     // Si no puede seguir, se detiene en la celda.
