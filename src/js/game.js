@@ -8,6 +8,7 @@ const DIRS = {
   up: { x: 0, y: -1 },
   down: { x: 0, y: 1 },
 };
+const GHOST_DIR_ORDER = [ 'up', 'left', 'down', 'right' ];
 const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
@@ -122,11 +123,42 @@ function movePacman( game ) {
   wrapTunnel( p, width );
 }
 
+function getChaseTarget( game, ghost ) {
+  const pacman = game.pacman;
+  const pacmanCell = { x: Math.round( pacman.x ), y: Math.round( pacman.y ) };
+
+  if ( ghost.kind === 'blinky' ) return pacmanCell;
+
+  const direction = DIRS[ pacman.dir ];
+  if ( ghost.kind === 'pinky' ) {
+    return {
+      x: pacmanCell.x + direction.x * 4,
+      y: pacmanCell.y + direction.y * 4,
+    };
+  }
+
+  if ( ghost.kind === 'inky' ) {
+    const blinky = game.ghosts[ 0 ];
+    const pivot = {
+      x: pacmanCell.x + direction.x * 2,
+      y: pacmanCell.y + direction.y * 2,
+    };
+    return {
+      x: pivot.x * 2 - Math.round( blinky.x ),
+      y: pivot.y * 2 - Math.round( blinky.y ),
+    };
+  }
+
+  const distance =
+    Math.abs( Math.round( ghost.x ) - pacmanCell.x ) +
+    Math.abs( Math.round( ghost.y ) - pacmanCell.y );
+  return distance > 8 ? pacmanCell : GHOST_PERSONALITIES.clyde.scatter;
+}
+
 function decideGhost( game, g ) {
   const grid = game.grid;
-  const p = game.pacman;
 
-  const options = Object.keys( DIRS ).filter(
+  const options = GHOST_DIR_ORDER.filter(
     ( dir ) => dir !== OPPOSITE[ g.dir ] && canMove( grid, g.x, g.y, dir )
   );
   // Sin salida (callejon): permitir el giro de 180.
@@ -134,7 +166,7 @@ function decideGhost( game, g ) {
 
   const target = game.ghostMode === 'scatter'
     ? GHOST_PERSONALITIES[ g.kind ].scatter
-    : { x: Math.round( p.x ), y: Math.round( p.y ) };
+    : getChaseTarget( game, g );
   let best = choices[ 0 ];
   let bestDist = Infinity;
   for ( const dir of choices ) {
